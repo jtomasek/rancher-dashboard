@@ -43,7 +43,7 @@ export const getters = {
     for ( const node of selected ) {
       if (node.availableActions) {
         for ( const act of node.availableActions ) {
-          _add(map, act);
+          _add(map, act, node);
         }
       }
     }
@@ -154,9 +154,18 @@ export const actions = {
 
 // -----------------------------
 
+function _isEnabled(action, node) {
+  if (typeof action.enabled === 'function') {
+    return action.enabled(node);
+  }
+
+  return action.enabled;
+}
+
 let anon = 0;
 
-function _add(map, act, incrementCounts = true) {
+function _add(map, act, node, incrementCounts = true) {
+  const enabled = _isEnabled(act, node);
   let id = act.action;
 
   if ( !id ) {
@@ -172,14 +181,14 @@ function _add(map, act, incrementCounts = true) {
     obj.allEnabled = false;
   }
 
-  if ( act.enabled === false ) {
+  if ( enabled === false ) {
     obj.allEnabled = false;
   } else {
     obj.anyEnabled = true;
   }
 
   if ( incrementCounts ) {
-    obj.available = (obj.available || 0) + (act.enabled === false ? 0 : 1 );
+    obj.available = (obj.available || 0) + (enabled === false ? 0 : 1 );
     obj.total = (obj.total || 0) + 1;
   }
 
